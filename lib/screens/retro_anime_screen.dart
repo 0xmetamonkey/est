@@ -1,3 +1,4 @@
+import 'package:est/screens/welcome_screen.dart';
 import 'package:flutter/material.dart';
 
 class RetroAnimeScreen extends StatelessWidget {
@@ -74,7 +75,14 @@ class RetroAnimeScreen extends StatelessWidget {
                     retroButton(
                       label: "ENTER",
                       color: Colors.cyanAccent,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const WelcomeScreen(),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                     retroButton(

@@ -34,3 +34,24 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+return Scaffold(
+  backgroundColor = Colors.black,
+  body = Center(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          "Hello Aman",
+          style: TextStyle(color: Colors.pinkAccent, fontSize: 32),
+        ),
+        SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () {
+            print("Button tapped!");
+          },
+          child: Text("Tap Me"),
+        ),
+      ],
+    ),
+  ),
+);

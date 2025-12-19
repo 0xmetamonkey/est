@@ -15,7 +15,7 @@ class SelectRoleScreen extends StatelessWidget {
               onPressed: () {
                 // TODO: handle creator flow
               },
-              child: const Text("I am a Creator"),
+              child: const Text("I am a Artist"),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
