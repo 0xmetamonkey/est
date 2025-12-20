@@ -1,17 +1,93 @@
 import 'package:flutter/material.dart';
-import 'retro_calling_screen.dart';
+import 'audio_call_screen.dart';
 
-class RetroProfileScreen extends StatelessWidget {
+class RetroProfileScreen extends StatefulWidget {
   final String name;
   final String bio;
   final double pricePerMinute;
+  final String upiId;
 
   const RetroProfileScreen({
     super.key,
     required this.name,
     required this.bio,
     required this.pricePerMinute,
+    required this.upiId,
   });
+
+  @override
+  State<RetroProfileScreen> createState() => _RetroProfileScreenState();
+}
+
+class _RetroProfileScreenState extends State<RetroProfileScreen> {
+  bool _isProcessing = false;
+
+  Future<void> _initiatePayment() async {
+    setState(() => _isProcessing = true);
+
+    // Simulate payment for MVP - in production, integrate actual UPI
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (mounted) {
+      setState(() => _isProcessing = false);
+      
+      // For MVP: Show dialog asking user to confirm payment
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Colors.black,
+          shape: Border.all(color: Colors.greenAccent, width: 2),
+          title: const Text(
+            'PAYMENT',
+            style: TextStyle(
+              fontFamily: 'Pixel',
+              color: Colors.greenAccent,
+            ),
+          ),
+          content: Text(
+            'Pay ₹${widget.pricePerMinute.toStringAsFixed(0)} to ${widget.name}\n\nUPI ID: ${widget.upiId}\n\nHave you completed the payment?',
+            style: const TextStyle(
+              fontFamily: 'Pixel',
+              color: Colors.white,
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text(
+                'CANCEL',
+                style: TextStyle(
+                  fontFamily: 'Pixel',
+                  color: Colors.redAccent,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'YES, PAID',
+                style: TextStyle(
+                  fontFamily: 'Pixel',
+                  color: Colors.greenAccent,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true && mounted) {
+        // Payment confirmed, navigate to call screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const AudioCallScreen(),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,12 +106,12 @@ class RetroProfileScreen extends StatelessWidget {
               // ASCII ANIME FACE
               Text(
                 r"""
-      (\_/)
+      (\\_/)
       ( •_•)  < Hi…
      / >💖
                 """,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: "Pixel",
                   color: Colors.pinkAccent,
                   fontSize: 20,
@@ -45,8 +121,8 @@ class RetroProfileScreen extends StatelessWidget {
               const SizedBox(height: 10),
 
               Text(
-                name,
-                style: TextStyle(
+                widget.name,
+                style: const TextStyle(
                   fontFamily: "Pixel",
                   fontSize: 22,
                   color: Colors.cyanAccent,
@@ -56,9 +132,9 @@ class RetroProfileScreen extends StatelessWidget {
               const SizedBox(height: 10),
 
               Text(
-                bio,
+                widget.bio,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: "Pixel",
                   fontSize: 14,
                   color: Colors.white70,
@@ -68,8 +144,8 @@ class RetroProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               Text(
-                "₹${pricePerMinute.toStringAsFixed(0)} / minute",
-                style: TextStyle(
+                "₹${widget.pricePerMinute.toStringAsFixed(0)} / minute",
+                style: const TextStyle(
                   fontFamily: "Pixel",
                   fontSize: 16,
                   color: Colors.yellowAccent,
@@ -78,28 +154,13 @@ class RetroProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 30),
 
-              retroButton(
-                label: "TALK TO ME",
-                color: Colors.greenAccent,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const RetroCallingScreen(),
+              _isProcessing
+                  ? const CircularProgressIndicator(color: Colors.greenAccent)
+                  : retroButton(
+                      label: "CALL ME (₹${widget.pricePerMinute.toStringAsFixed(0)}/min)",
+                      color: Colors.greenAccent,
+                      onTap: _initiatePayment,
                     ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              retroButton(
-                label: "WRITE TO ME",
-                color: Colors.cyanAccent,
-                onTap: () {
-                  // next screen (chat)
-                },
-              ),
             ],
           ),
         ),
@@ -125,3 +186,4 @@ class RetroProfileScreen extends StatelessWidget {
     );
   }
 }
+

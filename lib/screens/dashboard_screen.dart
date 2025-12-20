@@ -2,6 +2,7 @@ import 'package:est/widgets/retro_background.dart';
 import 'package:est/widgets/retro_button.dart';
 import 'package:est/screens/audio_test_screen.dart';
 import 'package:est/screens/call_screen.dart';
+import 'package:est/screens/audio_call_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -160,8 +161,19 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     RetroButton(
-                      label: "WALLET",
+                      label: "AUDIO LINK",
                       color: Colors.greenAccent,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AudioCallScreen()),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    RetroButton(
+                      label: "WALLET",
+                      color: Colors.amberAccent,
                       onTap: () {
                          ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("Wallet - Coming Soon!")),

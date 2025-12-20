@@ -1,10 +1,7 @@
-import 'package:est/screens/retro_anime_screen.dart';
+import 'package:est/screens/retro_profile_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+void main() {
   runApp(const MyApp());
 }
 
@@ -16,7 +13,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'ED Marketplace',
-      home: RetroAnimeScreen(),
+      home: const RetroProfileScreen(
+        name: "Luna",
+        bio: "Available for voice calls 💖",
+        pricePerMinute: 50.0,
+        upiId: "yourupiid@paytm", // REPLACE WITH YOUR UPI ID
+      ),
     );
   }
 }
