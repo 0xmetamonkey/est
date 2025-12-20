@@ -58,8 +58,12 @@ const DashboardScreen = {
                                 BROWSE CREATORS
                             </button>
                             
-                            <button class="retro-btn btn-amber" onclick="Router.navigate('contacts')">
-                                MESSAGES
+                            <button class="retro-btn btn-cyan" onclick="Router.navigate('contacts')">
+                                BROWSE HUMANS
+                            </button>
+
+                            <button class="retro-btn" style="border-color: var(--color-red); color: var(--color-red); box-shadow: 0 0 10px var(--color-red);" onclick="Router.navigate('ai-chat')">
+                                ♥ AI COMPANION
                             </button>
                             
                             <button class="retro-btn btn-green" onclick="alert('Wallet - Coming Soon!')">

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ED - THE VOID</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
+        #canvas-container { position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        /* Holographic UI Overlay */
+        #ui-layer {
+            position: absolute;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none; /* Let clicks pass to 3D world if needed */
+        }
+
+        .holo-panel {
+            background: rgba(0, 20, 40, 0.6);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+            padding: 40px;
+            text-align: center;
+            color: #0ff;
+            text-shadow: 0 0 10px #0ff;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.1), inset 0 0 20px rgba(0, 255, 255, 0.1);
+            transform: perspective(1000px) rotateX(10deg) scale(0.9);
+            transition: transform 0.5s ease;
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .holo-panel:hover {
+            transform: perspective(1000px) rotateX(0deg) scale(1);
+            border-color: rgba(0, 255, 255, 0.8);
+        }
+
+        /* Scanline effect on panel */
+        .holo-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 4em;
+            margin: 0;
+            letter-spacing: 10px;
+            animation: glitch 1s infinite alternate;
+        }
+
+        p {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 10px;
+        }
+
+        .btn-magic {
+            margin-top: 30px;
+            background: transparent;
+            border: 2px solid #f0f;
+            color: #f0f;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            font-family: inherit;
+            cursor: pointer;
+            text-shadow: 0 0 10px #f0f;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.2);
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-magic:hover {
+            background: rgba(255, 0, 255, 0.2);
+            box-shadow: 0 0 40px rgba(255, 0, 255, 0.6);
+            letter-spacing: 2px;
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 2px 0 #f0f, -2px 0 #0ff; }
+            20% { text-shadow: -2px 0 #f0f, 2px 0 #0ff; }
+            40% { text-shadow: 2px 0 #f0f, -2px 0 #0ff; }
+            100% { text-shadow: 2px 0 #f0f, -2px 0 #0ff; }
+        }
+        
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="ui-layer">
+        <div class="holo-panel">
+            <h1>SYSTEM ONLINE</h1>
+            <p id="sub-text">INITIALIZING NEURAL LINK...</p>
+            <button class="btn-magic" onclick="enterMatrix()">JACK IN</button>
+        </div>
+    </div>
+
+    <script>
+        // THREE.JS SETUP
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x000000, 0.002); // Distance fog
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // CREATE GRID FLOOR (Retro Synthwave Style)
+        const gridHelper = new THREE.GridHelper(200, 100, 0xff00ff, 0x00ffff);
+        gridHelper.position.y = -5;
+        scene.add(gridHelper);
+
+        // CREATE MOVING PARTICLES (Data Stream)
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 2000;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 300; // Spread within 300 units
+        }
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const material = new THREE.PointsMaterial({
+            size: 0.2,
+            color: 0x00ffff,
+            transparent: true,
+            opacity: 0.8,
+        });
+        const particlesMesh = new THREE.Points(particlesGeometry, material);
+        scene.add(particlesMesh);
+
+        camera.position.z = 20;
+        camera.position.y = 5;
+
+        // SOUND SYSTEM (Web Audio API - No external files needed!)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        
+        const SoundSystem = {
+            playHum() {
+                // Ambient low frequency drone
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(60, audioCtx.currentTime); // 60Hz hum
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime); // Quiet
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                // Persist this oscillator? For now let's just let it run or stop?
+                // Actually, let's just play it for the session
+                return osc;
+            },
+
+            playClick() {
+                // High tech click
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            },
+
+            playHover() {
+                // Subtle rise
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(400, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            },
+
+            playScan() {
+                // Digital scramble sound for typing
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(1000 + Math.random() * 500, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            },
+            
+            playWarp() {
+                // Big transition sound
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(2000, audioCtx.currentTime + 1);
+                
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1);
+            }
+        };
+
+        // Initialize Audio on first interaction
+        let audioStarted = false;
+        document.body.addEventListener('click', () => {
+             if (!audioStarted) {
+                 audioCtx.resume().then(() => {
+                     SoundSystem.playHum();
+                     audioStarted = true;
+                     console.log("Audio Engine Started");
+                 });
+             }
+        }, { once: true });
+
+
+        // MOUSE INTERACTION
+        let mouseX = 0;
+        let mouseY = 0;
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // UI SOUND HOOKS
+        document.querySelector('.btn-magic').addEventListener('mouseenter', () => SoundSystem.playHover());
+        document.querySelector('.btn-magic').addEventListener('click', () => SoundSystem.playClick());
+
+
+        // ANIMATION LOOP
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            // Fly forward effect (move grid z-axis)
+            // Actually simpler to move camera/objects illusion
+            particlesMesh.position.z += 0.2;
+            if(particlesMesh.position.z > 20) {
+                particlesMesh.position.z = -50;
+            }
+
+            // Grid follows camera x to fake infinite
+            // Actually let's just rotate the particle field slowly
+            particlesMesh.rotation.y = mouseY * 0.1;
+            particlesMesh.rotation.x = mouseX * 0.1;
+
+            // Camera sway based on mouse
+            camera.position.x += (mouseX * 5 - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY * 2 + 5 - camera.position.y) * 0.05;
+            camera.lookAt(0, 0, 0);
+
+            // Pulse grid color?
+            // (Advanced: need custom shader, skipping for MVP)
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // WINDOW RESIZE
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // TYPEWRITER EFFECT FOR TEXT
+        const textElement = document.getElementById('sub-text');
+        const text = "AWAITING USER INPUT // ESTABLISHED CONNECTION // 192.168.X.X";
+        let charIndex = 0;
+        
+        function typeWriter() {
+            if (charIndex < text.length) {
+                textElement.innerHTML = text.substring(0, charIndex + 1) + '<span style="animation: blink 0.5s infinite">_</span>';
+                
+                // Play typing sound occasionally to avoid machine gun effect
+                if (Math.random() > 0.5 && audioStarted) SoundSystem.playScan();
+                
+                charIndex++;
+                setTimeout(typeWriter, 50); // Typing speed
+            } else {
+                 textElement.innerHTML = text; // Finish
+            }
+        }
+        
+        // Wait for click to start everything (browser autoplay policy)
+        // Add a "Click to Start" overlay or just start silent?
+        // Let's rely on the body click listener we added above
+        setTimeout(typeWriter, 1000);
+
+        function enterMatrix() {
+            SoundSystem.playWarp();
+            // Transition effect
+            document.querySelector('.holo-panel').style.transform = "scale(50) rotateZ(180deg)";
+            document.querySelector('.holo-panel').style.opacity = "0";
+            setTimeout(() => {
+                window.location.href = "index.html#dashboard"; // Go to real app
+            }, 800);
+        }
+    </script>
+</body>
+</html>

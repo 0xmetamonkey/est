@@ -57,6 +57,10 @@ const Router = {
                 html = CallingScreen.render();
                 break;
                 
+            case 'ai-chat':
+                html = AiChatScreen.render();
+                break;
+
             case 'contacts':
                 // Check authentication
                 if (!AuthService.isAuthenticated()) {
