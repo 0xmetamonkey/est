@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'timer_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,6 +13,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<String> _activities = [];
   int _dailySuperTime = 30;
+  int _totalSecondsToday = 0;
 
   @override
   void initState() {
@@ -21,9 +23,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    
     setState(() {
       _activities = prefs.getStringList('activities') ?? [];
       _dailySuperTime = prefs.getInt('daily_super_time') ?? 30;
+      _totalSecondsToday = prefs.getInt('total_seconds_$today') ?? 0;
     });
   }
 
@@ -64,6 +69,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _openSettings() async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const SettingsScreen(),
+      ),
+    );
+    
+    // Reload data if settings changed
+    if (result == true) {
+      await _loadData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,11 +95,24 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Super Time',
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: const Color(0xFF2D2D2D),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Super Time',
+                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                          color: const Color(0xFF2D2D2D),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _openSettings,
+                        icon: const Icon(
+                          Icons.settings_outlined,
+                          color: Color(0xFF9C89B8),
+                        ),
+                        iconSize: 28,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -90,6 +121,34 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: const Color(0xFF666666),
                     ),
                   ),
+                  if (_totalSecondsToday > 0) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF9C89B8).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.favorite,
+                            color: Color(0xFF9C89B8),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Today: ${_formatDuration(_totalSecondsToday)}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF9C89B8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -191,6 +250,23 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         return '$hours hr $mins min';
       }
+    }
+  }
+
+  String _formatDuration(int totalSeconds) {
+    final hours = totalSeconds ~/ 3600;
+    final minutes = (totalSeconds % 3600) ~/ 60;
+
+    if (hours > 0) {
+      if (minutes > 0) {
+        return '$hours hr $minutes min';
+      } else {
+        return '$hours hr';
+      }
+    } else if (minutes > 0) {
+      return '$minutes min';
+    } else {
+      return '$totalSeconds sec';
     }
   }
 }
