@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../models/shot.dart';
+import '../services/shot_manager.dart';
+import '../services/sound_manager.dart';
+import 'camera_recording_screen.dart';
 
 class TimerScreen extends StatefulWidget {
-  final String activityName;
+  final Shot shot;
   final int dailySuperTime;
 
   const TimerScreen({
     super.key,
-    required this.activityName,
+    required this.shot,
     required this.dailySuperTime,
   });
 
@@ -18,9 +21,19 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen> {
+  final ShotManager _shotManager = ShotManager();
+  final SoundManager _soundManager = SoundManager();
   Timer? _timer;
   int _seconds = 0;
   bool _isRunning = false;
+  DateTime? _sessionStartTime;
+  int _capturedFramesThisSession = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _seconds = widget.shot.totalDurationSeconds;
+  }
 
   @override
   void dispose() {
@@ -29,13 +42,21 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   void _toggleTimer() {
-    HapticFeedback.mediumImpact();
+    if (_isRunning) {
+      _soundManager.playStop();
+    } else {
+      _soundManager.playStart();
+    }
     
     setState(() {
       _isRunning = !_isRunning;
     });
 
     if (_isRunning) {
+      _sessionStartTime = DateTime.now();
+      widget.shot.status = ShotStatus.active;
+      widget.shot.startedAt = _sessionStartTime;
+      
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         setState(() {
           _seconds++;
@@ -43,17 +64,79 @@ class _TimerScreenState extends State<TimerScreen> {
       });
     } else {
       _timer?.cancel();
+      widget.shot.status = ShotStatus.pending;
+    }
+  }
+
+  Future<void> _captureFrame() async {
+    _soundManager.playCamera();
+    
+    // Open camera recording screen
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CameraRecordingScreen(
+          shotTitle: widget.shot.title,
+          shotType: '${widget.shot.type.emoji} ${widget.shot.type.displayName}',
+        ),
+      ),
+    );
+
+    // Handle captured media from camera screen
+    if (result != null && result is Map<String, dynamic>) {
+      final videos = result['videos'] as List<String>? ?? [];
+      final images = result['images'] as List<String>? ?? [];
+      final frameCount = result['frameCount'] as int? ?? 0;
+      
+      setState(() {
+        _capturedFramesThisSession += frameCount;
+        widget.shot.capturedFrames += frameCount;
+        
+        // Add captured media paths to shot
+        widget.shot.videoPaths.addAll(videos);
+        widget.shot.imagePaths.addAll(images);
+      });
+
+      if (videos.isNotEmpty || images.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Text('Captured ${videos.length} videos, ${images.length} photos'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
     }
   }
 
   Future<void> _endSession() async {
     _timer?.cancel();
-    HapticFeedback.lightImpact();
+    _soundManager.playComplete();
     
     // Save session data
-    if (_seconds > 0) {
-      await _saveSession();
+    if (_sessionStartTime != null) {
+      final sessionDuration = DateTime.now().difference(_sessionStartTime!).inSeconds;
+      final session = ShotSession(
+        startTime: _sessionStartTime!,
+        endTime: DateTime.now(),
+        durationSeconds: sessionDuration,
+      );
+      widget.shot.sessions.add(session);
     }
+    
+    widget.shot.totalDurationSeconds = _seconds;
+    
+    // Complete the shot
+    await _shotManager.completeShot(widget.shot);
     
     if (mounted) {
       showDialog(
@@ -73,23 +156,74 @@ class _TimerScreenState extends State<TimerScreen> {
                     color: const Color(0xFF9C89B8).withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.favorite,
-                    color: Color(0xFF9C89B8),
-                    size: 40,
+                  child: Center(
+                    child: Text(
+                      widget.shot.type.emoji,
+                      style: const TextStyle(fontSize: 40),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text(
-                  'Well done',
-                  style: Theme.of(context).textTheme.headlineMedium,
+                const Text(
+                  '🎬 Shot Complete!',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'You spent ${_formatDuration(_seconds)}\non ${widget.activityName}',
+                  widget.shot.title,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: const Color(0xFF666666),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFF666666),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF9C89B8).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Duration:'),
+                          Text(
+                            _formatDuration(_seconds),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      if (_capturedFramesThisSession > 0) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Frames captured:'),
+                            Text(
+                              '$_capturedFramesThisSession',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Shot type:'),
+                          Text(
+                            '${widget.shot.type.emoji} ${widget.shot.type.displayName}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -119,13 +253,6 @@ class _TimerScreenState extends State<TimerScreen> {
     }
   }
 
-  Future<void> _saveSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    final todaySeconds = prefs.getInt('total_seconds_$today') ?? 0;
-    await prefs.setInt('total_seconds_$today', todaySeconds + _seconds);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -136,28 +263,82 @@ class _TimerScreenState extends State<TimerScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Back button
-              IconButton(
-                onPressed: () {
-                  if (_isRunning) {
-                    _toggleTimer();
-                  }
-                  Navigator.of(context).pop();
-                },
-                icon: const Icon(Icons.arrow_back),
-                padding: EdgeInsets.zero,
-                alignment: Alignment.centerLeft,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    onPressed: () async {
+                      if (_isRunning) {
+                        _toggleTimer();
+                      }
+                      // Save progress before leaving
+                      widget.shot.totalDurationSeconds = _seconds;
+                      await _shotManager.updateShot(widget.shot);
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    icon: const Icon(Icons.arrow_back),
+                    padding: EdgeInsets.zero,
+                    alignment: Alignment.centerLeft,
+                  ),
+                  // Shot type badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF9C89B8).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          widget.shot.type.emoji,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          widget.shot.type.displayName,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF9C89B8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
 
               const Spacer(),
 
-              // Activity name
+              // Shot title
               Center(
-                child: Text(
-                  widget.activityName,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: const Color(0xFF666666),
-                  ),
-                  textAlign: TextAlign.center,
+                child: Column(
+                  children: [
+                    const Text(
+                      '🎬 Now Shooting',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF999999),
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      widget.shot.title,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF2D2D2D),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
 
@@ -165,44 +346,93 @@ class _TimerScreenState extends State<TimerScreen> {
 
               // Timer display
               Center(
-                child: Text(
-                  _formatDuration(_seconds),
-                  style: const TextStyle(
-                    fontSize: 64,
-                    fontWeight: FontWeight.w200,
-                    color: Color(0xFF2D2D2D),
-                    letterSpacing: -2,
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: _isRunning 
+                        ? const Color(0xFF9C89B8).withOpacity(0.1)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _formatDuration(_seconds),
+                    style: TextStyle(
+                      fontSize: 64,
+                      fontWeight: FontWeight.w200,
+                      color: _isRunning 
+                          ? const Color(0xFF9C89B8)
+                          : const Color(0xFF2D2D2D),
+                      letterSpacing: -2,
+                      fontFamily: 'monospace',
+                    ),
                   ),
                 ),
               ),
 
               const SizedBox(height: 48),
 
-              // Start/Pause button
-              Center(
-                child: GestureDetector(
-                  onTap: _toggleTimer,
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF9C89B8),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF9C89B8).withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+              // Control buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Capture frame button (always visible when running)
+                  if (_isRunning)
+                    GestureDetector(
+                      onTap: _captureFrame,
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFF9C89B8),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF9C89B8).withOpacity(0.2),
+                              blurRadius: 15,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
                         ),
-                      ],
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Color(0xFF9C89B8),
+                          size: 28,
+                        ),
+                      ),
                     ),
-                    child: Icon(
-                      _isRunning ? Icons.pause : Icons.play_arrow,
-                      color: Colors.white,
-                      size: 40,
+                  
+                  if (_isRunning)
+                    const SizedBox(width: 32),
+                  
+                  // Start/Pause button
+                  GestureDetector(
+                    onTap: _toggleTimer,
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF9C89B8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF9C89B8).withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        _isRunning ? Icons.pause : Icons.play_arrow,
+                        color: Colors.white,
+                        size: 40,
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
 
               const Spacer(),
@@ -225,7 +455,7 @@ class _TimerScreenState extends State<TimerScreen> {
                       ),
                     ),
                     child: const Text(
-                      'End Session',
+                      '✅ Complete Shot',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,

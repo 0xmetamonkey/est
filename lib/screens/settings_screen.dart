@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/notification_manager.dart';
+import '../services/shot_manager.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -200,6 +202,112 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.lock_outline,
                     title: 'Privacy',
                     subtitle: 'All data stored locally on your device',
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Notifications section
+                  Text(
+                    'Notifications',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontSize: 18,
+                      color: const Color(0xFF666666),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  InkWell(
+                    onTap: () async {
+                      final notificationManager = NotificationManager();
+                      await notificationManager.show10MinuteReminder();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Triggered test notification!'),
+                            backgroundColor: Color(0xFF9C89B8),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: _InfoCard(
+                      icon: Icons.notifications_active_outlined,
+                      title: 'Test Notification',
+                      subtitle: 'Tap to trigger a test reminder now',
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // App Actions section
+                  Text(
+                    'App Actions',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontSize: 18,
+                      color: const Color(0xFF666666),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Restore default activities button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Restore Default Activities?'),
+                            content: const Text(
+                              'This will add back any missing activities from the original 12. Your custom activities will NOT be deleted.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF9C89B8),
+                                ),
+                                child: const Text('Restore'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirmed == true && context.mounted) {
+                          // Import shot manager and restore
+                          final shotManager = ShotManager();
+                          await shotManager.restoreMissingDefaults();
+                          
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Default activities restored!'),
+                              backgroundColor: Color(0xFF9C89B8),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF9C89B8),
+                        side: const BorderSide(color: Color(0xFF9C89B8), width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Restore Default Activities',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 32),

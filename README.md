@@ -1,182 +1,163 @@
-# EST - Enjoy Super Time
+# 🎬 Shot by Shot
 
-A calm, intentional self-care app that helps you spend quality time on activities you enjoy.
+**Film your life, not your tasks.**
 
-## 🌟 Concept
-
-Instead of a productivity to-do list, **Enjoy Super Time** helps you create a list of things you genuinely enjoy doing - yoga, sketching, coding, music, walking, etc. Each activity represents "super time" you want to give yourself.
-
-**No pressure. No guilt. No gamification. Just intentional time for yourself.**
+A life documentation app that treats time as cinema. Your day is 6 films (4 hours each), and you're the director choosing what scenes to capture.
 
 ---
 
-## 📱 Features
+## ⚡ Quick Start
 
-### Onboarding
-- Set your daily "super time" goal (15 min, 30 min, 1 hr, or custom)
-- Simple, one-time setup
-- Stored locally on your device
+```bash
+git clone https://github.com/0xmetamonkey/est.git
+cd est
+flutter pub get
+flutter run  # Android phone required
+```
 
-### Home Screen
-- View all your "super time" activities
-- Add new activities you enjoy
-- Delete activities you no longer want
-- Clean, minimal interface
+**First time?** Read [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) to understand the philosophy.
 
-### Timer
-- Tap any activity to start your super time
-- Simple play/pause timer
-- Count-up timer (no countdown pressure)
-- Gentle completion message when you're done
-- No streaks, no guilt
+---
+
+## 🎯 What Is This?
+
+Not a productivity app. A **life awareness tool**.
+
+### The Problem
+- You want to do many things but forget
+- You don't know where time goes
+- Life feels boring
+
+### The Solution
+**Make time visible. Make life filmable.**
+
+- 12 "shots" (activities) remind you what to film
+- 4-hour cycles show time flowing
+- Camera/audio captures actual footage
+- Life Reel shows what you filmed
+
+When you're "filming" something, even mundane tasks become interesting.
+
+---
+
+## 🚀 For Users
+
+**Just want to try it?**
+1. Download APK (when available)
+2. Use for one 4-hour cycle
+3. Fill out [`FEEDBACK_TEMPLATE.md`](FEEDBACK_TEMPLATE.md)
+4. Tell us what you think!
+
+---
+
+## 🤝 For Contributors
+
+**Want to help build this?**
+
+👉 **Start here:** [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+Quick picks:
+- **Designers:** Help make it feel like cinema, not a todo app
+- **Flutter Devs:** Build audio recording, background mode, one-tap filming  
+- **UX Writers:** Fix notifications, improve onboarding
+- **Testers:** Use it and tell us what's confusing
+
+---
+
+## 📖 Documentation
+
+| Doc | Purpose |
+|-----|---------|
+| **[PROJECT_BRIEF.md](PROJECT_BRIEF.md)** | The pitch - why this exists |
+| **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to help |
+| **[TEAM_HANDOVER.md](TEAM_HANDOVER.md)** | Current project state |
+| **[SHOT_BY_SHOT_GUIDE.md](SHOT_BY_SHOT_GUIDE.md)** | Philosophy deep-dive |
+| **[FEEDBACK_TEMPLATE.md](FEEDBACK_TEMPLATE.md)** | User testing form |
+| **[CAMERA_RECORDING_GUIDE.md](CAMERA_RECORDING_GUIDE.md)** | How recording works |
+| **[FEATURES.md](FEATURES.md)** | Feature list |
+
+---
+
+## ✨ Features
+
+**What Works:**
+- ✅ 12 default activities (Coding, Yoga, Write, etc.)
+- ✅ 4-hour cycle timer
+- ✅ Shot-specific tracking
+- ✅ Video/photo recording
+- ✅ Life Reel gallery
+- ✅ 10-minute reminders
+
+**What's Planned:**
+- 🚧 Audio-only recording
+- 🚧 One-tap filming
+- 🚧 Background mode
+- 🚧 Cinema aesthetic redesign
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to build these.
+
+---
+
+## 🎨 Philosophy
+
+> "We're not building a productivity app. We're building a tool to make time visible and life filmable.  
+> Every moment is footage. Every day is cinema. You're the director."
+
+### Not This → Is This
+❌ "Complete 10 tasks" → ✅ "You have 4 hours of film left"  
+❌ Stress about uncompleted items → ✅ Observe what you chose to film  
+❌ Racing against time → ✅ Watching time flow  
+❌ Productivity → ✅ **Existence**
+
+---
+
+## 💬 Get Involved
+
+### Give Feedback
+- Try the app for 4 hours
+- Fill out [`FEEDBACK_TEMPLATE.md`](FEEDBACK_TEMPLATE.md)
+- Create [GitHub Issue](https://github.com/0xmetamonkey/est/issues) with `[Feedback]` tag
+
+### Build Features
+- Read [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- Pick a task
+- Submit PR
+
+### Brainstorm
+- Join [GitHub Discussions](https://github.com/0xmetamonkey/est/discussions)
+- Answer: "What does 'filming your life' mean to you?"
+- Suggest features we haven't thought of
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Flutter** - Cross-platform framework
-- **Dart** - Programming language
-- **shared_preferences** - Local storage
-- **Target Platform** - Android (offline-first)
+- Flutter (Dart) for Android
+- Camera/audio APIs
+- Local-first (no backend, accounts, or sync)
 
 ---
 
-## 🚀 Getting Started
+## 📱 Status
 
-### Prerequisites
-- Flutter SDK installed
-- Android device or emulator
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/0xmetamonkey/est.git
-cd est
-
-# Install dependencies
-flutter pub get
-
-# Run on connected device
-flutter run
-```
-
-### Build for Android
-
-```bash
-# Build APK
-flutter build apk --release
-
-# Build App Bundle (for Play Store)
-flutter build appbundle --release
-```
-
----
-
-## 📂 Project Structure
-
-```
-lib/
-├── main.dart                          # App entry point & theme
-└── screens/
-    ├── onboarding_screen.dart         # Daily time selection
-    ├── home_screen.dart               # Activity list
-    └── timer_screen.dart              # Timer interface
-```
-
----
-
-## 🎨 Design Philosophy
-
-- **Calm** - Soft purple (#9C89B8) and beige (#F7F4F3) color palette
-- **Minimal** - Clean interface, no clutter
-- **No Gamification** - No streaks, points, or achievements
-- **No Pressure** - Count-up timer, gentle messages
-- **Intentional** - Focus on enjoyment, not productivity
-
----
-
-## 💾 Data Storage
-
-All data is stored **locally** on your device using `shared_preferences`:
-- Daily super time goal
-- List of activities
-- No cloud sync
-- No accounts
-- No analytics
-
----
-
-## 🔒 Privacy
-
-- **100% offline** - No internet required
-- **No tracking** - No analytics or telemetry
-- **No accounts** - No login or authentication
-- **Local only** - All data stays on your device
-
----
-
-## 🚫 What's NOT Included (By Design)
-
-- ❌ Accounts / Login
-- ❌ Cloud sync
-- ❌ Analytics
-- ❌ Notifications
-- ❌ Social features
-- ❌ Payments
-- ❌ Streaks or gamification
-- ❌ Productivity metrics
-
----
-
-## 📝 Customization
-
-The app uses a calm purple theme by default. To customize:
-
-1. Open `lib/main.dart`
-2. Modify the `ColorScheme` in the `ThemeData`:
-
-```dart
-colorScheme: ColorScheme.fromSeed(
-  seedColor: const Color(0xFF9C89B8), // Change this color
-  brightness: Brightness.light,
-),
-scaffoldBackgroundColor: const Color(0xFFF7F4F3), // Change background
-```
-
----
-
-## 🧪 Testing
-
-To test the app:
-
-1. **Onboarding**: Select a daily time goal (or set custom)
-2. **Add Activities**: Add 2-3 activities you enjoy
-3. **Start Timer**: Tap an activity and press play
-4. **End Session**: Let timer run for a minute, then end session
-5. **Delete Activity**: Swipe or tap X to remove an activity
+**Version:** 2.0.0-dev  
+**Phase:** Philosophy Clarification  
+**Next Milestone:** Make "filming life" concept crystal clear
 
 ---
 
 ## 📄 License
 
-Private project
+MIT (or specify your license)
 
 ---
 
-## 👥 Author
+## 🔗 Links
 
-**0xmetamonkey**
-
----
-
-## 📦 Archive
-
-Previous build (EST Audio Calling MVP) archived at:
-`c:\Users\journ\archived-projects\est-audio-mvp-2026-01-02\`
+- **Issues:** https://github.com/0xmetamonkey/est/issues
+- **Discussions:** https://github.com/0xmetamonkey/est/discussions
+- **Contact:** @0xmetamonkey
 
 ---
 
-**Status:** ✅ MVP Complete  
-**Version:** 1.0.0  
-**Last Updated:** January 2, 2026
+🎬 **Ready to film your life? Start with [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md)**

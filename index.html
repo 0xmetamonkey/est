@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shot by Shot - Your Life, Frame by Frame</title>
+    <meta name="description" content="A magical to-do list that treats life as cinema - every task is a shot, every day is a film">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="film-grain"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="film-icon">🎬</div>
+                    <h1 class="app-title">Shot by Shot</h1>
+                </div>
+                <div class="cycle-info">
+                    <div class="cycle-timer" id="cycleTimer">
+                        <span class="timer-label">Next Cycle in</span>
+                        <span class="timer-value" id="timerValue">3:42:15</span>
+                    </div>
+                </div>
+            </div>
+            <p class="tagline">Your life, frame by frame. Every task is a shot in your movie.</p>
+        </header>
+
+        <!-- Current Shot (Active Task) -->
+        <section class="current-shot" id="currentShot">
+            <div class="shot-header">
+                <h2>🎥 Now Shooting</h2>
+                <div class="recording-indicator">
+                    <span class="rec-dot"></span>
+                    <span class="rec-time" id="recordingTime">00:00</span>
+                </div>
+            </div>
+            <div class="no-active-shot" id="noActiveShot">
+                <p>No active shot. Select a task below to start filming your life.</p>
+            </div>
+            <div class="active-shot-card" id="activeShotCard" style="display: none;">
+                <h3 class="shot-title" id="activeShotTitle"></h3>
+                <div class="shot-meta">
+                    <span class="meta-item">📍 Scene <span id="shotNumber">1</span></span>
+                    <span class="meta-item">⏱️ <span id="shotDuration">0s</span></span>
+                    <span class="meta-item">🎞️ <span id="shotType">Action</span></span>
+                </div>
+                <div class="shot-actions">
+                    <button class="btn btn-capture" id="captureBtn">
+                        📸 Capture Frame
+                    </button>
+                    <button class="btn btn-complete" id="completeBtn">
+                        ✅ Cut! Complete
+                    </button>
+                    <button class="btn btn-pause" id="pauseBtn">
+                        ⏸️ Pause
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Today's Shots (Task List) -->
+        <section class="shots-list">
+            <div class="section-header">
+                <h2>📋 Today's Shot List</h2>
+                <button class="btn btn-add" id="addShotBtn">+ New Shot</button>
+            </div>
+            
+            <div class="shots-grid" id="shotsGrid">
+                <!-- Shots will be dynamically added here -->
+            </div>
+        </section>
+
+        <!-- Life Reel (Timeline) -->
+        <section class="life-reel">
+            <h2>🎞️ Your Life Reel</h2>
+            <div class="reel-timeline" id="reelTimeline">
+                <!-- Timeline items will be added here -->
+            </div>
+        </section>
+
+        <!-- Stats Dashboard -->
+        <section class="stats-dashboard">
+            <h2>📊 Production Stats</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🎬</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalShots">0</div>
+                        <div class="stat-label">Shots Today</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalTime">0m</div>
+                        <div class="stat-label">Screen Time</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="streakCount">1</div>
+                        <div class="stat-label">Day Streak</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📸</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="capturedFrames">0</div>
+                        <div class="stat-label">Frames Captured</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Add Shot Modal -->
+    <div class="modal" id="addShotModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🎬 New Shot</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="shotTitleInput">What are you shooting?</label>
+                    <input type="text" id="shotTitleInput" placeholder="e.g., Writing blog post, Morning workout, Coffee break..." class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="shotTypeInput">Shot Type</label>
+                    <select id="shotTypeInput" class="input-field">
+                        <option value="action">🎬 Action (Deep Work)</option>
+                        <option value="dialogue">💬 Dialogue (Communication)</option>
+                        <option value="montage">🎞️ Montage (Routine)</option>
+                        <option value="broll">📹 B-Roll (Break/Rest)</option>
+                        <option value="establishing">🌅 Establishing (Planning)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="captureFrameCheck">
+                        Remind me to capture a frame
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="createShotBtn">Create Shot</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
