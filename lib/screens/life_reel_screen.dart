@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/shot.dart';
 import '../services/shot_manager.dart';
+import '../services/cloud_shot_manager.dart';
 import 'package:intl/intl.dart';
 import 'video_player_screen.dart';
 
@@ -14,6 +15,7 @@ class LifeReelScreen extends StatefulWidget {
 
 class _LifeReelScreenState extends State<LifeReelScreen> {
   final ShotManager _shotManager = ShotManager();
+  final CloudShotManager _cloudShotManager = CloudShotManager();
   List<Shot> _completedShots = [];
   bool _loading = true;
 
@@ -29,6 +31,120 @@ class _LifeReelScreenState extends State<LifeReelScreen> {
       _completedShots = shots.reversed.toList(); // Most recent first
       _loading = false;
     });
+  }
+
+  Future<void> _showEditShotDialog(Shot shot) async {
+    final titleController = TextEditingController(text: shot.title);
+    ShotType selectedType = shot.type;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Edit Shot Details'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<ShotType>(
+                value: selectedType,
+                decoration: const InputDecoration(
+                  labelText: 'Activity Type',
+                  border: OutlineInputBorder(),
+                ),
+                items: ShotType.values.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text('${type.emoji} ${type.displayName}'),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) setState(() => selectedType = val);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF9C89B8),
+              ),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result == true) {
+      if (!mounted) return;
+      setState(() => _loading = true);
+      
+      try {
+        // Update local object
+        // Create new shot object to avoid mutation issues
+        final updatedShot = Shot(
+          id: shot.id,
+          title: titleController.text,
+          type: selectedType,
+          captureFrame: shot.captureFrame,
+          createdAt: shot.createdAt,
+          status: shot.status,
+          startedAt: shot.startedAt,
+          totalDurationSeconds: shot.totalDurationSeconds,
+          capturedFrames: shot.capturedFrames,
+          sessions: shot.sessions,
+          videoPaths: shot.videoPaths,
+          imagePaths: shot.imagePaths,
+        );
+
+        // Update in DBs
+        await _shotManager.updateShot(updatedShot); // This might need check if updateCompletedShot exists, falling back to updateShot which deals with list
+        
+        // Actually ShotManager.updateShot updates the 'shots_v2' list (pending). 
+        // We need to update the COMPLETED list.
+        // Let's manually do it here to ideally:
+        final allCompleted = await _shotManager.getCompletedShots();
+        final index = allCompleted.indexWhere((s) => s.id == shot.id);
+        if (index != -1) {
+          allCompleted[index] = updatedShot;
+          await _shotManager.saveCompletedShots(allCompleted);
+        }
+        
+        // Update Cloud
+        await _cloudShotManager.updateShot(updatedShot);
+        
+        // Refresh UI
+        await _loadCompletedShots();
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Shot updated successfully')),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error updating shot: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error updating: $e')),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _loading = false);
+      }
+    }
   }
 
   void _playVideo(String videoPath, String title) {
@@ -162,6 +278,7 @@ class _LifeReelScreenState extends State<LifeReelScreen> {
                               isLast: index == _completedShots.length - 1,
                               onPlayVideo: _playVideo,
                               onViewImage: _viewImage,
+                              onEdit: () => _showEditShotDialog(_completedShots[index]),
                             );
                           },
                         ),
@@ -179,6 +296,7 @@ class _TimelineItem extends StatelessWidget {
   final bool isLast;
   final Function(String, String) onPlayVideo;
   final Function(String, String) onViewImage;
+  final VoidCallback onEdit;
 
   const _TimelineItem({
     required this.shot,
@@ -186,6 +304,7 @@ class _TimelineItem extends StatelessWidget {
     required this.isLast,
     required this.onPlayVideo,
     required this.onViewImage,
+    required this.onEdit,
   });
 
   @override
@@ -249,7 +368,7 @@ class _TimelineItem extends StatelessWidget {
           // Shot card
           Expanded(
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(0),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -264,165 +383,172 @@ class _TimelineItem extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+              child: InkWell(
+                onLongPress: onEdit,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        shot.type.emoji,
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              shot.title,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF2D2D2D),
-                              ),
-                            ),
-                            Text(
-                              shot.type.displayName,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: const Color(0xFF9C89B8).withOpacity(0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (timeString.isNotEmpty)
-                        Text(
-                          timeString,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF999999),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      _MetaChip(
-                        icon: Icons.timer_outlined,
-                        label: _formatDuration(shot.totalDurationSeconds),
-                      ),
-                      if (shot.capturedFrames > 0) ...[
-                        const SizedBox(width: 8),
-                        _MetaChip(
-                          icon: Icons.camera_alt_outlined,
-                          label: '${shot.capturedFrames} frames',
-                        ),
-                      ],
-                      if (shot.videoPaths.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        _MetaChip(
-                          icon: Icons.videocam_outlined,
-                          label: '${shot.videoPaths.length} videos',
-                        ),
-                      ],
-                    ],
-                  ),
-                  
-                  // Media thumbnails
-                  if (hasMedia) ...[
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 80,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
+                      Row(
                         children: [
-                          // Video thumbnails
-                          ...shot.videoPaths.map((videoPath) => Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: GestureDetector(
-                              onTap: () => onPlayVideo(videoPath, shot.title),
-                              child: Container(
-                                width: 100,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: const Color(0xFF9C89B8).withOpacity(0.3),
+                          Text(
+                            shot.type.emoji,
+                            style: const TextStyle(fontSize: 24),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  shot.title,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF2D2D2D),
                                   ),
                                 ),
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.movie_outlined,
-                                      color: Colors.white.withOpacity(0.5),
-                                      size: 32,
-                                    ),
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF9C89B8),
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: const Color(0xFF9C89B8).withOpacity(0.5),
-                                            blurRadius: 10,
-                                          ),
-                                        ],
-                                      ),
-                                      child: const Icon(
-                                        Icons.play_arrow,
-                                        color: Colors.white,
-                                        size: 24,
-                                      ),
-                                    ),
-                                  ],
+                                Text(
+                                  shot.type.displayName,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: const Color(0xFF9C89B8).withOpacity(0.7),
+                                  ),
                                 ),
+                              ],
+                            ),
+                          ),
+                          if (timeString.isNotEmpty)
+                            Text(
+                              timeString,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF999999),
                               ),
                             ),
-                          )),
-                          // Image thumbnails
-                          ...shot.imagePaths.map((imagePath) => Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: GestureDetector(
-                              onTap: () => onViewImage(imagePath, shot.title),
-                              child: Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: const Color(0xFF9C89B8).withOpacity(0.3),
-                                  ),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(7),
-                                  child: Image.file(
-                                    File(imagePath),
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        color: Colors.grey[200],
-                                        child: const Icon(
-                                          Icons.broken_image_outlined,
-                                          color: Colors.grey,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )),
                         ],
                       ),
-                    ),
-                  ],
-                ],
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          _MetaChip(
+                            icon: Icons.timer_outlined,
+                            label: _formatDuration(shot.totalDurationSeconds),
+                          ),
+                          if (shot.capturedFrames > 0) ...[
+                            const SizedBox(width: 8),
+                            _MetaChip(
+                              icon: Icons.camera_alt_outlined,
+                              label: '${shot.capturedFrames} frames',
+                            ),
+                          ],
+                          if (shot.videoPaths.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            _MetaChip(
+                              icon: Icons.videocam_outlined,
+                              label: '${shot.videoPaths.length} videos',
+                            ),
+                          ],
+                        ],
+                      ),
+                      
+                      // Media thumbnails
+                      if (hasMedia) ...[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 80,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              // Video thumbnails
+                              ...shot.videoPaths.map((videoPath) => Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: GestureDetector(
+                                  onTap: () => onPlayVideo(videoPath, shot.title),
+                                  child: Container(
+                                    width: 100,
+                                    height: 80,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: const Color(0xFF9C89B8).withOpacity(0.3),
+                                      ),
+                                    ),
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.movie_outlined,
+                                          color: Colors.white.withOpacity(0.5),
+                                          size: 32,
+                                        ),
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF9C89B8),
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFF9C89B8).withOpacity(0.5),
+                                                blurRadius: 10,
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.play_arrow,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              )),
+                              // Image thumbnails
+                              ...shot.imagePaths.map((imagePath) => Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: GestureDetector(
+                                  onTap: () => onViewImage(imagePath, shot.title),
+                                  child: Container(
+                                    width: 80,
+                                    height: 80,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: const Color(0xFF9C89B8).withOpacity(0.3),
+                                      ),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(7),
+                                      child: Image.file(
+                                        File(imagePath),
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            color: Colors.grey[200],
+                                            child: const Icon(
+                                              Icons.broken_image_outlined,
+                                              color: Colors.grey,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

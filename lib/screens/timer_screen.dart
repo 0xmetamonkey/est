@@ -5,6 +5,7 @@ import '../models/shot.dart';
 import '../services/shot_manager.dart';
 import '../services/sound_manager.dart';
 import 'camera_recording_screen.dart';
+import '../services/cloud_shot_manager.dart';
 
 class TimerScreen extends StatefulWidget {
   final Shot shot;
@@ -23,6 +24,7 @@ class TimerScreen extends StatefulWidget {
 class _TimerScreenState extends State<TimerScreen> {
   final ShotManager _shotManager = ShotManager();
   final SoundManager _soundManager = SoundManager();
+  final CloudShotManager _cloudShotManager = CloudShotManager();
   Timer? _timer;
   int _seconds = 0;
   bool _isRunning = false;
@@ -137,6 +139,7 @@ class _TimerScreenState extends State<TimerScreen> {
     
     // Complete the shot
     await _shotManager.completeShot(widget.shot);
+    await _cloudShotManager.updateShot(widget.shot);
     
     if (mounted) {
       showDialog(
@@ -188,43 +191,43 @@ class _TimerScreenState extends State<TimerScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Duration:'),
-                          Text(
-                            _formatDuration(_seconds),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      if (_capturedFramesThisSession > 0) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Frames captured:'),
-                            Text(
-                              '$_capturedFramesThisSession',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Duration:'),
+                        Text(
+                          _formatDuration(_seconds),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
+                    ),
+                    if (_capturedFramesThisSession > 0) ...[
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Shot type:'),
+                          const Text('Frames captured:'),
                           Text(
-                            '${widget.shot.type.emoji} ${widget.shot.type.displayName}',
+                            '$_capturedFramesThisSession',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                     ],
-                  ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Shot type:'),
+                        Text(
+                          '${widget.shot.type.emoji} ${widget.shot.type.displayName}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
                 ),
                 const SizedBox(height: 32),
                 SizedBox(

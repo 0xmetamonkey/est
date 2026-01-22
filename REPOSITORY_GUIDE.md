@@ -12,8 +12,8 @@ A calm, intentional self-care app that helps users spend quality time on activit
 
 ### Quick Start
 ```bash
-git clone https://github.com/0xmetamonkey/est.git
-cd est
+git clone https://github.com/0xmetamonkey/supertime.git
+cd supertime
 flutter pub get
 flutter run
 ```
@@ -65,7 +65,7 @@ flutter run
 ### Local Archive
 The audio calling MVP is also archived locally at:
 ```
-c:\Users\journ\archived-projects\est-audio-mvp-2026-01-02\
+c:\Users\journ\archived-projects\supertime-audio-mvp-2026-01-02\
 ```
 
 ---
@@ -107,7 +107,7 @@ git branch -a
 - **Current Project Docs:** [README.md](README.md)
 - **Team Handover:** [TEAM_HANDOVER.md](TEAM_HANDOVER.md)
 - **MVP Complete:** [MVP_COMPLETE.md](MVP_COMPLETE.md)
-- **GitHub Repo:** https://github.com/0xmetamonkey/est
+- **GitHub Repo:** https://github.com/0xmetamonkey/supertime
 
 ---
 

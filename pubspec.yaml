@@ -1,5 +1,5 @@
-name: est
-description: "Enjoy Super Time - A calm, intentional self-care app"
+name: supertime
+description: "Super Time - A calm, intentional self-care app"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -34,13 +34,21 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.5.4
   intl: ^0.19.0
   camera: ^0.10.5+5
   video_player: ^2.8.1
   path_provider: ^2.1.1
   permission_handler: ^11.1.0
   audioplayers: ^5.2.1
+  
+  # Firebase for collaborative stories
+  firebase_core: ^3.1.0
+  firebase_auth: ^5.1.0
+  cloud_firestore: ^5.0.0
+  firebase_storage: ^12.0.0
+  google_sign_in: ^6.2.1
+  agora_rtc_engine: ^6.3.2
 
 dev_dependencies:
   flutter_test:

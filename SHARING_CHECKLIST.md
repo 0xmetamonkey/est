@@ -23,7 +23,7 @@ git push origin main
 
 ### Step 2: Create GitHub Discussions
 
-Go to: `https://github.com/0xmetamonkey/est/discussions`
+Go to: `https://github.com/0xmetamonkey/supertime/discussions`
 
 Create 4 discussions using templates from `.github/DISCUSSION_TEMPLATES.md`:
 
@@ -51,7 +51,7 @@ Timer shows time flowing (not running out)
 
 Need feedback & contributors!
 
-github.com/0xmetamonkey/est
+github.com/0xmetamonkey/supertime
 ```
 
 **Designer Communities:**

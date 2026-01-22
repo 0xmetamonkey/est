@@ -80,7 +80,7 @@ All recordings are saved to your app's private storage:
 - **Videos**: `shot_[timestamp].mp4`
 - **Photos**: `frame_[timestamp].jpg`
 
-Location: `/data/data/com.enjoysuper.est/app_flutter/`
+Location: `/data/data/com.enjoysuper.supertime/app_flutter/`
 
 ## 🎬 Perfect For:
 

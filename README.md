@@ -9,8 +9,8 @@ A life documentation app that treats time as cinema. Your day is 6 films (4 hour
 ## ⚡ Quick Start
 
 ```bash
-git clone https://github.com/0xmetamonkey/est.git
-cd est
+git clone https://github.com/0xmetamonkey/supertime.git
+cd supertime
 flutter pub get
 flutter run  # Android phone required
 ```
@@ -116,7 +116,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to build these.
 ### Give Feedback
 - Try the app for 4 hours
 - Fill out [`FEEDBACK_TEMPLATE.md`](FEEDBACK_TEMPLATE.md)
-- Create [GitHub Issue](https://github.com/0xmetamonkey/est/issues) with `[Feedback]` tag
+- Create [GitHub Issue](https://github.com/0xmetamonkey/supertime/issues) with `[Feedback]` tag
 
 ### Build Features
 - Read [`CONTRIBUTING.md`](CONTRIBUTING.md)
@@ -124,7 +124,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to build these.
 - Submit PR
 
 ### Brainstorm
-- Join [GitHub Discussions](https://github.com/0xmetamonkey/est/discussions)
+- Join [GitHub Discussions](https://github.com/0xmetamonkey/supertime/discussions)
 - Answer: "What does 'filming your life' mean to you?"
 - Suggest features we haven't thought of
 
@@ -154,8 +154,8 @@ MIT (or specify your license)
 
 ## 🔗 Links
 
-- **Issues:** https://github.com/0xmetamonkey/est/issues
-- **Discussions:** https://github.com/0xmetamonkey/est/discussions
+- **Issues:** https://github.com/0xmetamonkey/supertime/issues
+- **Discussions:** https://github.com/0xmetamonkey/supertime/discussions
 - **Contact:** @0xmetamonkey
 
 ---

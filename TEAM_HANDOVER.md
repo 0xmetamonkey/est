@@ -56,8 +56,8 @@
 
 ### Setup
 ```bash
-git clone https://github.com/0xmetamonkey/est.git
-cd est
+git clone https://github.com/0xmetamonkey/supertime.git
+cd supertime
 flutter pub get
 flutter run  # With Android phone connected
 ```
@@ -84,9 +84,9 @@ See `CONTRIBUTING.md` and `PROJECT_BRIEF.md` for:
 
 ## 🔗 Links
 
-- **Repo:** https://github.com/0xmetamonkey/est
-- **Issues:** https://github.com/0xmetamonkey/est/issues
-- **Discussions:** https://github.com/0xmetamonkey/est/discussions
+- **Repo:** https://github.com/0xmetamonkey/supertime
+- **Issues:** https://github.com/0xmetamonkey/supertime/issues
+- **Discussions:** https://github.com/0xmetamonkey/supertime/discussions
 
 ---
 

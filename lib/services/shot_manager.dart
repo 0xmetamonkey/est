@@ -24,13 +24,6 @@ class ShotManager {
     
     final shotsJson = prefs.getString(_shotsKey);
     if (shotsJson == null) {
-      // Create default shots (user's original 12 activities)
-      await createDefaultShots();
-      final newShotsJson = prefs.getString(_shotsKey);
-      if (newShotsJson != null) {
-        final List<dynamic> decoded = jsonDecode(newShotsJson);
-        return decoded.map((json) => Shot.fromJson(json)).toList();
-      }
       return [];
     }
     

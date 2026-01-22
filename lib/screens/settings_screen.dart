@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
 import '../services/notification_manager.dart';
 import '../services/shot_manager.dart';
+import '../screens/login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -305,6 +308,75 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Sign Out button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final authService = AuthService();
+                        final user = FirebaseAuth.instance.currentUser;
+                        
+                        if (user != null) {
+                          // Confirm sign out
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Sign Out?'),
+                              content: Text(
+                                user.isAnonymous 
+                                  ? 'You\'re signed in anonymously. Your data is backed up to cloud.'
+                                  : 'Sign out from ${user.email ?? "your account"}?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF9C89B8),
+                                  ),
+                                  child: const Text('Sign Out'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirmed == true && context.mounted) {
+                            await authService.signOut();
+                            
+                            // Navigate to login screen
+                            if (context.mounted) {
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                (route) => false,
+                              );
+                            }
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.logout),
+                      label: const Text(
+                        'Sign Out',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF9C89B8),
+                        side: const BorderSide(color: Color(0xFF9C89B8), width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                     ),

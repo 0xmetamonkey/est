@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "503909518866",
+    "project_id": "estv01-8a473bce",
+    "storage_bucket": "estv01-8a473bce.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:503909518866:android:f032b8ca31f46b53ad92cb",
+        "android_client_info": {
+          "package_name": "com.enjoysuper.est"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "503909518866-oj6socf29nl4lb80mqjhk2c65mih7gml.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.enjoysuper.est",
+            "certificate_hash": "55bcc60985109907020b73fd050678a5319abdb0"
+          }
+        },
+        {
+          "client_id": "503909518866-m81t606nlio0ffnji4m308fk7hc82lm5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLzTpU-oUhfiCWadYHF25koMZOZ6fVuX0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "503909518866-m81t606nlio0ffnji4m308fk7hc82lm5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "503909518866-5s0qicvmotn8dq14bcukj3766ts9ifpl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.enjoysuper.est"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:503909518866:android:003aa4737687910cad92cb",
+        "android_client_info": {
+          "package_name": "com.example.est"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "503909518866-3ii0ob8grqrcgejnp1t14ufcbvhgp9i4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.est",
+            "certificate_hash": "55bcc60985109907020b73fd050678a5319abdb0"
+          }
+        },
+        {
+          "client_id": "503909518866-m81t606nlio0ffnji4m308fk7hc82lm5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLzTpU-oUhfiCWadYHF25koMZOZ6fVuX0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "503909518866-m81t606nlio0ffnji4m308fk7hc82lm5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "503909518866-5s0qicvmotn8dq14bcukj3766ts9ifpl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.enjoysuper.est"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
